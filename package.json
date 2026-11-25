@@ -1,0 +1,21 @@
+{
+  "name": "booking-management",
+  "private": true,
+  "packageManager": "pnpm@10.34.9",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "build:packages": "pnpm --filter \"./packages/**\" build",
+    "dev:api": "pnpm build:packages && pnpm --filter @booking/api dev",
+    "dev:web": "pnpm build:packages && pnpm --filter @booking/web dev",
+    "build": "pnpm build:packages && pnpm --filter @booking/api --filter @booking/web build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "3.10.1"
+  }
+}

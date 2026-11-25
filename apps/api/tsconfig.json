@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "resolvePackageJsonExports": true,
+    "removeComments": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "incremental": true,
+    "strictPropertyInitialization": false,
+    "types": ["node"]
+  },
+  "include": ["src"]
+}

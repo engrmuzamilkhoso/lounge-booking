@@ -1,0 +1,30 @@
+node_modules/
+dist/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# Generated Prisma client
+apps/api/src/generated/
+
+# Environment files (only the .example variants are committed)
+.env
+.env.*
+!.env.example
+
+# Database exports contain customer personal data — never commit them
+*.sql
+*.csv
+!apps/api/prisma/migrations/**/*.sql
+!apps/api/prisma/scripts/*.sql
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Next.js generated types
+apps/web/next-env.d.ts
