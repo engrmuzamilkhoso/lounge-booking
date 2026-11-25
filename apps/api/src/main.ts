@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module.js';
+import { createValidationPipe } from './common/validation/create-validation-pipe.js';
 import type { Environment } from './config/environment.js';
 
 const API_PREFIX = 'api/v1';
@@ -15,6 +16,7 @@ async function bootstrap(): Promise<void> {
 
   app.useLogger(app.get(Logger));
   app.setGlobalPrefix(API_PREFIX);
+  app.useGlobalPipes(createValidationPipe());
   app.enableCors({
     origin: configService.get('CORS_ORIGINS', { infer: true }),
     credentials: true,

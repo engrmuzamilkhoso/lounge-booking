@@ -1,12 +1,20 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
+import { AccessControlModule } from './access-control/access-control.module.js';
+import { AuthModule } from './auth/auth.module.js';
 import { AllExceptionsFilter } from './common/http/all-exceptions.filter.js';
 import { ResponseEnvelopeInterceptor } from './common/http/response-envelope.interceptor.js';
 import { type Environment, validateEnvironment } from './config/environment.js';
 import { HealthModule } from './health/health.module.js';
+import { MailModule } from './mail/mail.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { UsersModule } from './users/users.module.js';
+
+/** Default per-IP request limit; auth endpoints set stricter limits with @Throttle. */
+const DEFAULT_RATE_LIMIT = { ttl: 60_000, limit: 120 };
 
 @Module({
   imports: [
@@ -20,13 +28,18 @@ import { PrismaModule } from './prisma/prisma.module.js';
             level: configService.get('LOG_LEVEL', { infer: true }),
             // Readable logs locally, JSON lines in production.
             transport: isDevelopment ? { target: 'pino-pretty' } : undefined,
-            // Never log credentials or tokens.
+            // Never log credentials or tokens. Request bodies are not logged at all.
             redact: ['req.headers.authorization', 'req.headers.cookie'],
           },
         };
       },
     }),
+    ThrottlerModule.forRoot([DEFAULT_RATE_LIMIT]),
     PrismaModule,
+    MailModule,
+    AccessControlModule,
+    AuthModule,
+    UsersModule,
     HealthModule,
   ],
   providers: [

@@ -113,6 +113,23 @@ Each sub-phase is a small, reviewable change set.
 | Q11 | Location of new monorepo                                                                                      | Separate folder `d:\projects\booking-management`                                                                     |
 | Q12 | Meaning of `cards.services_code` and `cards.visit_type`                                                       | Keep columns; need business meaning before using them                                                                |
 
+### Behaviour differences introduced during implementation (for review)
+
+Each is either a security fix or something Laravel did not have. Everything else keeps Laravel's rules.
+
+| Area                           | Laravel                                                 | New API                                                                        | Why                                                                 |
+| ------------------------------ | ------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| Change own password            | No current-password check                               | `currentPassword` required                                                     | Stolen session can't lock the owner out                             |
+| Change / reset password        | Other sessions stay signed in                           | All sessions signed out                                                        | Standard after a credential change                                  |
+| Profile (`/me`)                | Admin-only page (`profile_password_edit`), name + email | Every signed-in user; first/last name, email, contact (CNIC read-only)         | Needed by the mobile app                                            |
+| OTP                            | Plain text, no attempt limit, unknown email → `0007`    | Hashed, 5 attempts, unknown email answers like a known one                     | Brute-force and account-discovery protection                        |
+| Login / OTP / register / reset | Unlimited                                               | Rate-limited per IP (10/min credentials, 5/min email-sending)                  | Brute-force and email-spam protection                               |
+| Mobile logout                  | Revoked all of the user's tokens                        | `/auth/logout` ends this device; `/auth/logout-all` keeps the old behaviour    | Logging out on the phone shouldn't end the website session          |
+| Queued email                   | DB queue + cron worker                                  | Sent directly after the data is saved; failures logged, request still succeeds | No worker process to keep alive; Laravel's queue had 87 failed jobs |
+| Registration welcome email     | Sent to staff only                                      | Unchanged (staff only) — **confirm whether customers should get it**           | Template text addresses the customer                                |
+
+Data note: permission `booking_orders` (id 123) is soft-deleted in Laravel, so 122 permissions are active.
+
 ## 5. Risks
 
 | Risk                                                                          | Mitigation                                                                                             |
@@ -193,7 +210,7 @@ SELECT max(id), (SELECT last_value FROM bookings_id_seq) FROM bookings;
 - [x] Phase 4 — Monorepo setup (Docker files moved to Phase 12)
 - [ ] Phase 5 — Supabase + Prisma
 - [ ] Phase 6 — Data import (you)
-- [ ] Phase 7 — API modules
+- [~] Phase 7 — API modules: 7a auth, users, roles & permissions done
 - [ ] Phase 8 — Frontend
 - [ ] Phase 9 — Auth hardening
 - [ ] Phase 10 — Integration
