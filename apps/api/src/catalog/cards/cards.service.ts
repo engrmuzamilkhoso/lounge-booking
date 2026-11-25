@@ -21,10 +21,16 @@ export class CardsService {
     private readonly auditService: AuditService,
   ) {}
 
-  /**
-   * All cards that are not deleted, including inactive ones, in id order: Laravel's booking
-   * form listed `Card::all()` the same way. `isActive` is returned so clients can decide.
-   */
+  /** Cards offered on the Lounge booking form: active and not deleted, in id order. */
+  findActive(): Promise<CardResponse[]> {
+    return this.prisma.card.findMany({
+      where: { deletedAt: null, isActive: true },
+      select: cardSelect,
+      orderBy: { id: 'asc' },
+    });
+  }
+
+  /** Every card that is not deleted, active or not, for staff. */
   findAll(): Promise<CardResponse[]> {
     return this.prisma.card.findMany({
       where: { deletedAt: null },

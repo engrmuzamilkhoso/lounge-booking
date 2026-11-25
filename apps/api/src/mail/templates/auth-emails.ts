@@ -35,7 +35,7 @@ export function renderPasswordResetLinkEmail(
 
 /**
  * Port of Laravel `emails/register.blade.php` (the `welcomeMail` mailable).
- * Laravel sends it to the staff notification list, not to the customer.
+ * Sent to the staff notification list (as in Laravel) and to the new customer.
  */
 export function renderWelcomeEmail(fullName: string): EmailContent {
   const body = `

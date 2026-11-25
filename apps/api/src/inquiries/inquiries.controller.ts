@@ -16,10 +16,9 @@ export class InquiriesController {
   constructor(private readonly mailService: MailService) {}
 
   /**
-   * Emails the inquiry to staff. Inquiries are not stored, as in Laravel.
-   *
-   * Laravel also sent a copy to the address typed into the form; that let anyone send email
-   * with their own text through this server to any address, so the copy is not sent.
+   * Emails the inquiry to staff and a copy to the address given in the form, as Laravel did.
+   * Inquiries are not stored. The per-IP limit restricts how often the form can be used to
+   * send mail to an arbitrary address.
    */
   @Public()
   @Throttle(INQUIRY_LIMIT)
@@ -41,6 +40,7 @@ export class InquiriesController {
         phone: dto.phone,
         message: dto.message,
       }),
+      [dto.email],
     );
   }
 }

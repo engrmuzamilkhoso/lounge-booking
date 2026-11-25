@@ -76,7 +76,7 @@ export class BookingCreationService {
       );
     }
     if (details.bankCardId !== undefined) {
-      await this.assertBankCardExists(details.bankCardId);
+      await this.assertBankCardIsActive(details.bankCardId);
     }
 
     const totalAmount = this.calculateTotal(product, details);
@@ -246,13 +246,14 @@ export class BookingCreationService {
     return Math.round(total);
   }
 
-  private async assertBankCardExists(bankCardId: number): Promise<void> {
+  /** New bookings can only use cards offered on the booking form (active, not deleted). */
+  private async assertBankCardIsActive(bankCardId: number): Promise<void> {
     const card = await this.prisma.card.findFirst({
-      where: { id: bankCardId, deletedAt: null },
+      where: { id: bankCardId, deletedAt: null, isActive: true },
       select: { id: true },
     });
     if (card === null) {
-      throw invalidField('bankCardId', 'The selected bank card does not exist');
+      throw invalidField('bankCardId', 'The selected bank card is not available');
     }
   }
 

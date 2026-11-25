@@ -35,13 +35,18 @@ export class AuthService {
     return { user: toUserProfile(user), ...tokens };
   }
 
-  /** Customer self-registration: same fields, Customer role and staff email as Laravel. */
+  /**
+   * Customer self-registration: same fields and Customer role as Laravel. The welcome email
+   * goes to staff (as in Laravel) and also to the new customer.
+   */
   async register(dto: RegisterDto, userAgent: string | undefined): Promise<AuthSession> {
     await this.usersService.assertEmailAvailable(dto.email);
     await this.assertCnicAvailable(dto.cnic);
 
     const user = await this.createCustomer(dto);
-    await this.mailService.sendToStaff(renderWelcomeEmail(`${dto.firstName} ${dto.lastName}`));
+    await this.mailService.sendToStaff(renderWelcomeEmail(`${dto.firstName} ${dto.lastName}`), [
+      dto.email,
+    ]);
 
     const tokens = await this.tokenService.issueTokenPair(user.id, userAgent);
     return { user, ...tokens };

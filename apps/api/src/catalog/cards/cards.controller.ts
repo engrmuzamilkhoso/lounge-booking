@@ -9,9 +9,9 @@ import { CardsService } from './cards.service.js';
 export class CardsController {
   constructor(private readonly cardsService: CardsService) {}
 
-  /** Bank cards offered on the Lounge booking form. */
+  /** Bank cards offered on the Lounge booking form (active cards only). */
   @Get()
-  findAll(): Promise<CardResponse[]> {
-    return this.cardsService.findAll();
+  findActive(): Promise<CardResponse[]> {
+    return this.cardsService.findActive();
   }
 }
