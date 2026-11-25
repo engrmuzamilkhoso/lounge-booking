@@ -25,6 +25,10 @@ export const ResponseCode = {
   InvalidResetToken: '0017',
   TooManyAttempts: '0018',
   PriceMismatch: '0019',
+  PaymentNotRequired: '0020',
+  AlreadyPaid: '0021',
+  PaymentGatewayError: '0022',
+  PaymentsUnavailable: '0023',
   ServerError: '9999',
 } as const;
 export type ResponseCode = (typeof ResponseCode)[keyof typeof ResponseCode];
@@ -50,6 +54,10 @@ export const ResponseMessage: Record<ResponseCode, string> = {
   '0017': 'Invalid-Reset-Token',
   '0018': 'Too-Many-Attempts',
   '0019': 'Price-Mismatch',
+  '0020': 'Payment-Not-Required',
+  '0021': 'Already-Paid',
+  '0022': 'Payment-Gateway-Error',
+  '0023': 'Payments-Unavailable',
   '9999': 'Server-Error',
 };
 

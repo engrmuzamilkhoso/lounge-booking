@@ -1,4 +1,4 @@
-import type { AttendeeType } from '@booking/shared-types';
+import type { AttendeeType, BookingPaymentStatus, PaymentStatus } from '@booking/shared-types';
 import { formatDateOnly } from '../common/date-only.js';
 import type { Prisma } from '../generated/prisma/client.js';
 
@@ -15,6 +15,20 @@ export interface AttendeeResponse {
   contactNo: string | null;
   email: string | null;
   guardianContact: string | null;
+}
+
+export interface PaymentSummary {
+  id: number;
+  status: PaymentStatus;
+  /** PKR, converted from the smallest unit sent to the gateway. */
+  amount: number;
+  currency: string;
+  gateway: string;
+  /** Gateway reference (Safepay tracker) — quote it to Safepay support. */
+  reference: string;
+  paymentMethod: string | null;
+  paidAt: string | null;
+  createdAt: string;
 }
 
 export interface BookingResponse {
@@ -38,6 +52,10 @@ export interface BookingResponse {
   guests: number;
   /** PKR */
   totalAmount: number | null;
+  /** not_required (free or settled offline) | pending | paid | failed | refunded */
+  paymentStatus: BookingPaymentStatus;
+  /** Online payment attempts, newest first. */
+  payments: PaymentSummary[];
   bankCard: { id: number; name: string } | null;
   membership: { id: number; serialNo: string } | null;
   createdAt: string | null;
@@ -70,6 +88,7 @@ export const bookingSelect = {
   infantQty: true,
   guestQty: true,
   totalAmount: true,
+  paymentStatus: true,
   createdAt: true,
   service: { select: { id: true, name: true } },
   product: { select: { id: true, name: true } },
@@ -82,6 +101,20 @@ export const bookingSelect = {
     where: { deletedAt: null },
     select: attendeeSelect,
     orderBy: [{ attendeeType: 'asc' }, { id: 'asc' }],
+  },
+  payments: {
+    select: {
+      id: true,
+      status: true,
+      amountMinor: true,
+      currency: true,
+      gateway: true,
+      gatewayReference: true,
+      paymentMethod: true,
+      paidAt: true,
+      createdAt: true,
+    },
+    orderBy: { id: 'desc' },
   },
 } satisfies Prisma.BookingSelect;
 
@@ -139,6 +172,19 @@ export function toBookingResponse(booking: BookingRecord): BookingResponse {
     infants: booking.infantQty ?? 0,
     guests: booking.guestQty ?? 0,
     totalAmount: booking.totalAmount,
+    // CHECK constraints limit both status columns to the documented values.
+    paymentStatus: booking.paymentStatus as BookingPaymentStatus,
+    payments: booking.payments.map((payment) => ({
+      id: payment.id,
+      status: payment.status as PaymentStatus,
+      amount: payment.amountMinor / 100,
+      currency: payment.currency,
+      gateway: payment.gateway,
+      reference: payment.gatewayReference,
+      paymentMethod: payment.paymentMethod,
+      paidAt: payment.paidAt === null ? null : payment.paidAt.toISOString(),
+      createdAt: payment.createdAt.toISOString(),
+    })),
     bankCard: booking.bankCard,
     membership: booking.membership,
     createdAt: booking.createdAt === null ? null : booking.createdAt.toISOString(),

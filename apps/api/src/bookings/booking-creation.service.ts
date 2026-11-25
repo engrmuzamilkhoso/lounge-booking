@@ -1,17 +1,21 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { MembershipStatus, ResponseCode, type SourceRequestId } from '@booking/shared-types';
+import {
+  BookingPaymentStatus,
+  MembershipStatus,
+  ResponseCode,
+  type SourceRequestId,
+} from '@booking/shared-types';
 import type { AuditActor } from '../audit/audit-actor.js';
 import { AuditService } from '../audit/audit.service.js';
 import { calculateBookingTotal, type ProductPrices } from '../catalog/products/product-pricing.js';
 import { parseDateOnly, todayInPakistan } from '../common/date-only.js';
 import { AppException } from '../common/http/app.exception.js';
 import type { Prisma } from '../generated/prisma/client.js';
-import { renderBookingConfirmationEmail } from '../mail/templates/booking-emails.js';
-import { MailService } from '../mail/mail.service.js';
 import { MembershipsService } from '../memberships/memberships.service.js';
 import { isUniqueConstraintViolation } from '../prisma/prisma-errors.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { formatBookingCode } from './booking-code.js';
+import { BookingConfirmationMailer } from './booking-confirmation.mailer.js';
 import {
   type BookingResponse,
   bookingSelect,
@@ -33,7 +37,10 @@ export interface CreateBookingCommand {
   idempotencyKey?: string;
   /** Customers cannot book flights that already left; staff may record past bookings. */
   rejectPastDepartures: boolean;
-  /** Laravel emailed web bookings only, not bookings entered by staff. */
+  /**
+   * Laravel emailed web bookings only, not bookings entered by staff. Bookings that must be
+   * paid are emailed once payment is confirmed instead (see PaymentsService).
+   */
   sendConfirmationEmail: boolean;
   actor: AuditActor;
 }
@@ -50,7 +57,7 @@ export class BookingCreationService {
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
     private readonly membershipsService: MembershipsService,
-    private readonly mailService: MailService,
+    private readonly bookingConfirmationMailer: BookingConfirmationMailer,
   ) {}
 
   async create(command: CreateBookingCommand): Promise<BookingResponse> {
@@ -102,8 +109,9 @@ export class BookingCreationService {
       return previous;
     }
 
-    if (command.sendConfirmationEmail) {
-      await this.sendConfirmationEmail(booking);
+    const isFree = booking.paymentStatus === BookingPaymentStatus.NotRequired;
+    if (command.sendConfirmationEmail && isFree) {
+      await this.bookingConfirmationMailer.send(booking.id);
     }
     return booking;
   }
@@ -140,6 +148,10 @@ export class BookingCreationService {
           infantQty: details.infants,
           guestQty: details.guests ?? 0,
           totalAmount,
+          // Free bookings (bank-card lounge, membership visits) are confirmed straight away;
+          // anything with a price waits for payment.
+          paymentStatus:
+            totalAmount > 0 ? BookingPaymentStatus.Pending : BookingPaymentStatus.NotRequired,
           idempotencyKey: command.idempotencyKey,
           attendees: { create: details.attendees.map(toAttendeeData) },
         },
@@ -269,21 +281,6 @@ export class BookingCreationService {
       return null;
     }
     return toBookingResponse(booking);
-  }
-
-  /** To staff and the customer, as Laravel's `orderMail`. */
-  private async sendConfirmationEmail(booking: BookingResponse): Promise<void> {
-    if (booking.customer === null) {
-      return;
-    }
-    const content = renderBookingConfirmationEmail({
-      customerName: booking.customer.firstName ?? '',
-      code: booking.code,
-      adults: booking.adults,
-      children: booking.children,
-      infants: booking.infants,
-    });
-    await this.mailService.sendToStaff(content, [booking.customer.email]);
   }
 }
 

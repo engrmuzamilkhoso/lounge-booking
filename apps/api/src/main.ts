@@ -11,7 +11,8 @@ const API_PREFIX = 'api/v1';
 const SWAGGER_PATH = 'api/docs';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  // rawBody: Safepay webhook signatures are checked against the exact bytes received.
+  const app = await NestFactory.create(AppModule, { bufferLogs: true, rawBody: true });
   const configService = app.get<ConfigService<Environment, true>>(ConfigService);
 
   app.useLogger(app.get(Logger));

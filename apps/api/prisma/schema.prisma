@@ -46,12 +46,15 @@ model User {
   rememberToken   String?   @map("remember_token") @db.VarChar(255)
   /// Google account id ("sub" claim) once the user has signed in with Google.
   googleSub       String?   @unique @map("google_sub") @db.VarChar(255)
+  /// Profile picture URL from Google, when the user signed in with Google.
+  avatarUrl       String?   @map("avatar_url") @db.VarChar(1024)
   createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
 
   roles               RoleUser[]
   bookings            Booking[]
+  payments            Payment[]
   refreshTokens       RefreshToken[]
   passwordResetTokens PasswordResetToken[]
 
@@ -297,6 +300,9 @@ model Booking {
   totalAmount     Int?      @map("total_amount")
   // New: client-supplied key that makes POST /bookings safe to retry.
   idempotencyKey  String?   @map("idempotency_key") @db.VarChar(100)
+  /// not_required | pending | paid | failed | refunded (CHECK constraint in migration).
+  /// Bookings with a total of 0 (bank-card lounge access, membership visits) never need payment.
+  paymentStatus   String    @default("not_required") @map("payment_status") @db.VarChar(20)
   createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
@@ -309,12 +315,14 @@ model Booking {
   membership    Membership?      @relation(fields: [membershipId], references: [id])
   bankCard      Card?            @relation(fields: [bankCardId], references: [id])
   attendees     BookingAttendee[]
+  payments      Payment[]
 
   @@unique([customerId, idempotencyKey])
   @@index([customerId])
   @@index([membershipId])
   @@index([departureDate])
   @@index([createdAt])
+  @@index([paymentStatus])
   @@map("bookings")
 }
 
@@ -342,6 +350,40 @@ model BookingAttendee {
 
   @@index([bookingId])
   @@map("booking_details")
+}
+
+/// One payment attempt for a booking through a payment gateway (Safepay).
+/// A booking can have several attempts (e.g. a failed card, then a successful one);
+/// at most one is "pending" at a time, and the booking's payment_status mirrors the latest outcome.
+model Payment {
+  id               Int       @id @default(autoincrement())
+  bookingId        Int       @map("booking_id")
+  customerId       Int?      @map("customer_id")
+  /// "safepay"
+  gateway          String    @db.VarChar(30)
+  /// Safepay tracker token (track_…): the gateway's id for this payment session.
+  gatewayReference String    @unique @map("gateway_reference") @db.VarChar(100)
+  /// Amount in the smallest currency unit, exactly as sent to the gateway (PKR → paisa).
+  amountMinor      Int       @map("amount_minor")
+  currency         String    @db.Char(3)
+  /// pending | paid | failed | cancelled | refunded (CHECK constraint in migration).
+  status           String    @db.VarChar(20)
+  /// Last state reported by the gateway, e.g. TRACKER_ENDED.
+  gatewayState     String?   @map("gateway_state") @db.VarChar(40)
+  /// Card brand and last four digits, when the gateway reports them.
+  paymentMethod    String?   @map("payment_method") @db.VarChar(60)
+  /// Last gateway response or webhook payload, for support and reconciliation (no card data).
+  gatewayResponse  Json?     @map("gateway_response")
+  paidAt           DateTime? @map("paid_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  booking  Booking @relation(fields: [bookingId], references: [id])
+  customer User?   @relation(fields: [customerId], references: [id])
+
+  @@index([bookingId])
+  @@index([status])
+  @@map("payments")
 }
 
 // Bookings received via the mobile app's WhatsApp flow. The table did not exist in

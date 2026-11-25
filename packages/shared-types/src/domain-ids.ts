@@ -48,3 +48,24 @@ export const MembershipStatus = {
   Approved: 2,
 } as const;
 export type MembershipStatus = (typeof MembershipStatus)[keyof typeof MembershipStatus];
+
+/** `bookings.payment_status` */
+export const BookingPaymentStatus = {
+  /** Total is 0 (bank-card lounge access, membership visit) or settled offline (Laravel era). */
+  NotRequired: 'not_required',
+  Pending: 'pending',
+  Paid: 'paid',
+  Failed: 'failed',
+  Refunded: 'refunded',
+} as const;
+export type BookingPaymentStatus = (typeof BookingPaymentStatus)[keyof typeof BookingPaymentStatus];
+
+/** `payments.status` — one gateway payment attempt. */
+export const PaymentStatus = {
+  Pending: 'pending',
+  Paid: 'paid',
+  Failed: 'failed',
+  Cancelled: 'cancelled',
+  Refunded: 'refunded',
+} as const;
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];

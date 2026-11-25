@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { BookingsModule } from './bookings/bookings.module.js';
 import { CatalogModule } from './catalog/catalog.module.js';
 import { MembershipsModule } from './memberships/memberships.module.js';
+import { PaymentsModule } from './payments/payments.module.js';
 import { AllExceptionsFilter } from './common/http/all-exceptions.filter.js';
 import { ResponseEnvelopeInterceptor } from './common/http/response-envelope.interceptor.js';
 import { type Environment, validateEnvironment } from './config/environment.js';
@@ -52,6 +53,7 @@ const DEFAULT_RATE_LIMIT = { ttl: 60_000, limit: 120 };
     CatalogModule,
     MembershipsModule,
     BookingsModule,
+    PaymentsModule,
     LookupsModule,
     FaqModule,
     InquiriesModule,

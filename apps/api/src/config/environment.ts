@@ -30,6 +30,18 @@ const environmentSchema = z.object({
    */
   GOOGLE_CLIENT_ID: z.string().default(''),
 
+  /**
+   * Safepay (https://getsafepay.com). Sandbox and production are separate Safepay accounts with
+   * separate keys. Leave SAFEPAY_SECRET_KEY empty to disable online payments.
+   */
+  SAFEPAY_ENVIRONMENT: z.enum(['sandbox', 'production']).default('sandbox'),
+  /** Public merchant API key (sent as `merchant_api_key` when creating a payment). */
+  SAFEPAY_API_KEY: z.string().default(''),
+  /** Secret key, sent in the `x-sfpy-merchant-secret` header. Server-side only. */
+  SAFEPAY_SECRET_KEY: z.string().default(''),
+  /** Shared secret of the webhook endpoint (Dashboard → Developers → Endpoints). */
+  SAFEPAY_WEBHOOK_SECRET: z.string().default(''),
+
   /** When SMTP_HOST is empty, emails are written to the log instead of being sent. */
   SMTP_HOST: z.string().default(''),
   SMTP_PORT: z.coerce.number().int().positive().default(587),
