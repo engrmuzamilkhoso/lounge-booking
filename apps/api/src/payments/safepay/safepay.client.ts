@@ -53,30 +53,39 @@ const trackerResponseSchema = z.object({
 
 const passportResponseSchema = z.object({ data: z.string().min(1) });
 
-const reportResponseSchema = z.object({
-  data: z.object({
-    tracker: z.object({
-      token: z.string(),
-      state: z.string(),
-      purchase_totals: z
-        .object({
-          quote_amount: z.object({ amount: z.number(), currency: z.string() }).partial().optional(),
-        })
-        .partial()
-        .optional(),
-    }),
-    action: z
-      .object({
-        payment_method: z
-          .object({ card_type: z.string().optional(), last_four: z.string().optional() })
-          .partial()
-          .nullable()
-          .optional(),
-      })
+/** Tracker fields used for verification. Unknown fields (merchant details) are dropped. */
+const reportedTrackerSchema = z.object({
+  token: z.string(),
+  state: z.string(),
+  purchase_totals: z
+    .object({
+      quote_amount: z.object({ amount: z.number(), currency: z.string() }).partial().optional(),
+    })
+    .partial()
+    .optional(),
+});
+
+const reportedActionSchema = z
+  .object({
+    payment_method: z
+      .object({ card_type: z.string().optional(), last_four: z.string().optional() })
       .partial()
       .nullable()
       .optional(),
-  }),
+  })
+  .partial()
+  .nullable()
+  .optional();
+
+/**
+ * GET /reporter/api/v1/payments/{tracker}. The sandbox returns the tracker directly in `data`
+ * (observed 26 Nov 2026); the documentation shows it nested in `data.tracker`. Both are accepted.
+ */
+const reportResponseSchema = z.object({
+  data: z.union([
+    z.object({ tracker: reportedTrackerSchema, action: reportedActionSchema }),
+    reportedTrackerSchema.extend({ action: reportedActionSchema }),
+  ]),
 });
 
 @Injectable()
@@ -159,7 +168,9 @@ export class SafepayClient {
       throw new SafepayError('Unexpected response when fetching a Safepay payment', null);
     }
 
-    const { tracker: trackerData, action } = parsed.data.data;
+    const reported = parsed.data.data;
+    const trackerData = 'tracker' in reported ? reported.tracker : reported;
+    const action = reported.action;
     const quote = trackerData.purchase_totals?.quote_amount;
     const card = action?.payment_method;
     let paymentMethod: string | null = null;
