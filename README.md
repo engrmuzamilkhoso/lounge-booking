@@ -161,6 +161,18 @@ successful one.
 4. Set `WEB_URL` to the public website URL (it builds the return and cancel URLs).
 5. Make one small real payment and refund it from the Safepay dashboard to confirm the setup.
 
+### If the customer's connection drops after paying
+
+A payment is never lost when the customer pays but does not come back to the website:
+
+1. **Background check:** every 2 minutes the API asks Safepay about every unfinished payment
+   from the last 24 hours. Paid ones are confirmed (booking paid, email with the QR pass sent
+   once). Sessions older than 3 hours that are still unpaid are closed.
+2. **Booking page:** opening the booking in *My bookings* re-checks it with Safepay at once.
+3. **Pay again:** before reusing a payment session, the API asks Safepay first. If it was
+   already paid, the customer is told so and is never charged twice.
+4. **Webhook** (optional, needs a public URL): Safepay notifies the API directly.
+
 ## Lounge passes (QR check-in)
 
 After a booking is paid (or when it has nothing to pay), the customer gets a QR code: on the

@@ -38,6 +38,10 @@ export interface PaymentConfirmation {
   paymentStatus: PaymentStatus;
 }
 
+export interface RefreshedPayment {
+  bookingPaymentStatus: BookingPaymentStatus;
+}
+
 interface OpenPayment {
   id: number;
   gatewayReference: string;
@@ -159,6 +163,50 @@ export class PaymentsService {
     }
   }
 
+  /**
+   * Customer asks "did my payment go through?" (e.g. the connection dropped before Safepay
+   * could send them back). Re-checks the booking's most recent unfinished attempt with Safepay.
+   */
+  async refreshBookingPayment(bookingId: number, customerId: number): Promise<RefreshedPayment> {
+    const booking = await this.prisma.booking.findFirst({
+      where: { id: bookingId, customerId, deletedAt: null },
+      select: { id: true, paymentStatus: true },
+    });
+    if (booking === null) {
+      throw recordNotFound();
+    }
+
+    const payment = await this.prisma.payment.findFirst({
+      where: { bookingId, status: { in: [PaymentStatus.Pending, PaymentStatus.Failed] } },
+      orderBy: { id: 'desc' },
+      select: { id: true, gatewayReference: true },
+    });
+    if (payment === null || !this.safepayClient.isConfigured) {
+      return { bookingPaymentStatus: booking.paymentStatus as BookingPaymentStatus };
+    }
+
+    try {
+      await this.reconcilePayment(payment.id, payment.gatewayReference);
+    } catch (error) {
+      throw toGatewayException(error);
+    }
+    const updated = await this.prisma.booking.findUniqueOrThrow({
+      where: { id: bookingId },
+      select: { paymentStatus: true },
+    });
+    return { bookingPaymentStatus: updated.paymentStatus as BookingPaymentStatus };
+  }
+
+  /**
+   * Asks Safepay for the current state of one payment attempt and applies it. Safe to call any
+   * number of times, from any process: the row lock and state machine make it idempotent.
+   */
+  async reconcilePayment(paymentId: number, tracker: string): Promise<PaymentStatus> {
+    const report = await this.safepayClient.fetchPayment(tracker);
+    const result = await this.applyReport(paymentId, report, false);
+    return result.status;
+  }
+
   /** Returns the tracker of the booking's open session, creating one when needed. */
   private async findOrCreateOpenSession(
     bookingId: number,
@@ -168,11 +216,17 @@ export class PaymentsService {
   ): Promise<string> {
     const openPayment = await this.findOpenPayment(bookingId);
     if (openPayment !== null) {
+      // Always ask Safepay first: the customer may have paid on this session and lost their
+      // connection before being sent back. Paying again must never be offered in that case.
+      const status = await this.reconcilePayment(openPayment.id, openPayment.gatewayReference);
+      if (status === PaymentStatus.Paid) {
+        throw new AppException(ResponseCode.AlreadyPaid, HttpStatus.CONFLICT);
+      }
       const isFresh = Date.now() - openPayment.createdAt.getTime() < REUSABLE_SESSION_AGE_MS;
-      if (isFresh && openPayment.amountMinor === amountMinor) {
+      if (status === PaymentStatus.Pending && isFresh && openPayment.amountMinor === amountMinor) {
         return openPayment.gatewayReference;
       }
-      await this.closeStaleSession(openPayment);
+      await this.cancelIfStillPending(openPayment.id);
     }
 
     const tracker = await this.safepayClient.createTracker({
@@ -222,17 +276,13 @@ export class PaymentsService {
   }
 
   /**
-   * An old open session is checked with Safepay before being replaced: if the customer did pay
-   * on it, the booking is marked paid instead of starting a second payment.
+   * Closes a session that Safepay just reported as unpaid (it is being replaced, or it is too
+   * old to be paid any more). If Safepay later reports it paid after all, the state machine
+   * still accepts cancelled → paid.
    */
-  private async closeStaleSession(openPayment: OpenPayment): Promise<void> {
-    const report = await this.safepayClient.fetchPayment(openPayment.gatewayReference);
-    const result = await this.applyReport(openPayment.id, report, false);
-    if (result.status === PaymentStatus.Paid) {
-      throw new AppException(ResponseCode.AlreadyPaid, HttpStatus.CONFLICT);
-    }
+  async cancelIfStillPending(paymentId: number): Promise<void> {
     await this.prisma.payment.updateMany({
-      where: { id: openPayment.id, status: PaymentStatus.Pending },
+      where: { id: paymentId, status: PaymentStatus.Pending },
       data: { status: PaymentStatus.Cancelled },
     });
   }

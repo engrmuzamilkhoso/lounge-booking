@@ -1,6 +1,7 @@
 'use client';
 
 import { Lock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ interface PayNowButtonProps {
  * clicks cannot start several payments (the API also reuses one session per booking).
  */
 export function PayNowButton({ bookingId, amount, label }: PayNowButtonProps) {
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -36,6 +38,8 @@ export function PayNowButton({ bookingId, amount, label }: PayNowButtonProps) {
             // On success the action redirects to Safepay; only failures return here.
             if (!result.ok) {
               setError(result.message);
+              // e.g. Safepay reports the booking was paid after all: show its pass.
+              router.refresh();
             }
           });
         }}

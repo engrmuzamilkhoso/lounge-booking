@@ -8,6 +8,7 @@ import {
   type CheckoutSession,
   type PaymentConfirmation,
   PaymentsService,
+  type RefreshedPayment,
 } from './payments.service.js';
 
 export class ConfirmPaymentDto {
@@ -50,5 +51,19 @@ export class PaymentsController {
     @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<PaymentConfirmation> {
     return this.paymentsService.confirmFromRedirect(dto.tracker, currentUser.id);
+  }
+
+  /**
+   * Re-checks the booking's latest unfinished payment with Safepay, for when the customer paid
+   * but never came back to the website (lost connection). Returns the booking's payment status.
+   */
+  @Throttle(PAYMENT_LIMIT)
+  @Post('bookings/:id/payment/refresh')
+  @HttpCode(HttpStatus.OK)
+  refresh(
+    @Param('id', ParseIntPipe) bookingId: number,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<RefreshedPayment> {
+    return this.paymentsService.refreshBookingPayment(bookingId, currentUser.id);
   }
 }

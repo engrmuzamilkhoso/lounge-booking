@@ -9,7 +9,7 @@ import { PayNowButton } from '@/components/payments/pay-now-button';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Container } from '@/components/ui/container';
-import { getMyBookingOrNotFound } from '@/lib/api/queries';
+import { getMyBookingWithFreshPayment } from '@/lib/api/queries';
 import type { PaymentSummary } from '@/lib/api/types';
 import { requireUser } from '@/lib/auth/current-user';
 import { bookingPriceLines } from '@/lib/content/booking-price';
@@ -35,7 +35,7 @@ export default async function MyBookingPage({
   const { bookingId } = await params;
   const { placed } = await searchParams;
   await requireUser(`/my-bookings/${bookingId}`);
-  const booking = await getMyBookingOrNotFound(Number(bookingId));
+  const booking = await getMyBookingWithFreshPayment(Number(bookingId));
   const lines = await bookingPriceLines(booking);
   const total = booking.totalAmount ?? 0;
 

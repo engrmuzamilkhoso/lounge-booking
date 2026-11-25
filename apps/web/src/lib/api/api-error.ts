@@ -48,6 +48,7 @@ const FRIENDLY_MESSAGES: Partial<Record<ResponseCode, string>> = {
   [ResponseCode.PriceMismatch]: 'The price has changed. Please review the new total.',
   [ResponseCode.Unauthorized]: 'Please sign in to continue.',
   [ResponseCode.Forbidden]: 'You do not have permission to do that.',
+  [ResponseCode.AlreadyPaid]: 'This booking is already paid. Your lounge pass is ready.',
   [ResponseCode.PassAlreadyUsed]: 'This pass has already been used.',
   [ResponseCode.PassNotValid]: 'This pass cannot be used.',
   [ResponseCode.NoRecord]: 'We could not find what you were looking for.',

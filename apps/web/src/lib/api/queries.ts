@@ -52,3 +52,34 @@ export async function getMyBookingOrNotFound(bookingId: number): Promise<Booking
     throw error;
   }
 }
+
+/**
+ * The customer's booking, after asking the API to re-check an unfinished online payment with
+ * Safepay. Covers customers who paid but lost their connection before Safepay sent them back.
+ * If Safepay cannot be reached, the booking is shown as last known.
+ */
+export async function getMyBookingWithFreshPayment(bookingId: number): Promise<Booking> {
+  const booking = await getMyBookingOrNotFound(bookingId);
+  const hasUnfinishedPayment =
+    (booking.paymentStatus === 'pending' || booking.paymentStatus === 'failed') &&
+    booking.payments.length > 0;
+  if (!hasUnfinishedPayment) {
+    return booking;
+  }
+
+  let refreshed: { bookingPaymentStatus: Booking['paymentStatus'] };
+  try {
+    refreshed = await apiRequest<{ bookingPaymentStatus: Booking['paymentStatus'] }>(
+      `/bookings/${bookingId}/payment/refresh`,
+      { method: 'POST' },
+    );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return booking;
+    }
+    throw error;
+  }
+  return refreshed.bookingPaymentStatus === booking.paymentStatus
+    ? booking
+    : getMyBookingOrNotFound(bookingId);
+}
