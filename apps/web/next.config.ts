@@ -7,6 +7,10 @@ import type { NextConfig } from 'next';
  */
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  images: {
+    // Profile pictures of users who sign in with Google.
+    remotePatterns: [{ protocol: 'https', hostname: 'lh3.googleusercontent.com' }],
+  },
   turbopack: {
     rules: {
       '*.css': {

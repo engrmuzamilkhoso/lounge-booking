@@ -1,6 +1,7 @@
 'use client';
 
 import { CalendarCheck, ChevronDown, LayoutDashboard, LogOut, UserRound } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -97,9 +98,19 @@ function UserDropdown({ user }: { user: NonNullable<SessionSummary['user']> }) {
         aria-haspopup="menu"
         className="flex items-center gap-2 rounded-full py-1 pr-2 pl-1 text-sm font-medium text-espresso-900 hover:bg-stone-100"
       >
-        <span className="flex size-8 items-center justify-center rounded-full bg-espresso-900 text-xs font-semibold text-gold-100">
-          {initial}
-        </span>
+        {user.avatarUrl === null ? (
+          <span className="flex size-8 items-center justify-center rounded-full bg-espresso-900 text-xs font-semibold text-gold-100">
+            {initial}
+          </span>
+        ) : (
+          <Image
+            src={user.avatarUrl}
+            alt=""
+            width={32}
+            height={32}
+            className="size-8 rounded-full object-cover"
+          />
+        )}
         <span className="hidden max-w-32 truncate sm:inline">{user.name}</span>
         <ChevronDown aria-hidden className="size-4 text-stone-500" />
       </button>

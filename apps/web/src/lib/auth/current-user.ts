@@ -12,6 +12,7 @@ export interface CurrentUser {
   email: string;
   cnic: string | null;
   contact: string | null;
+  avatarUrl: string | null;
   roles: { id: number; title: string | null }[];
 }
 

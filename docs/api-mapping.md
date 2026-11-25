@@ -128,3 +128,14 @@ Existing Laravel codes are kept with the same meaning; new codes cover cases Lar
 | 0018 | Too-Many-Attempts         | 429       | new                                                                           |
 | 0019 | Price-Mismatch            | 409       | new (client total ≠ server total; booking not created)                        |
 | 9999 | Server-Error              | 500       | new                                                                           |
+
+## 5. Online payments (Safepay) — added 26 Nov 2026
+
+| Endpoint                                       | Who                    | Purpose                                                                                                                                                                          |
+| ---------------------------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /bookings/:id/checkout`                  | customer (own booking) | Create or reuse the Safepay session; returns `{ checkoutUrl, amount, currency }`. `0020` free booking, `0021` already paid, `0022` gateway error, `0023` payments not configured |
+| `POST /payments/safepay/confirm` `{ tracker }` | customer (own payment) | After Safepay's redirect: verify with Safepay and return `{ bookingId, bookingCode, bookingPaymentStatus, paymentStatus }`                                                       |
+| `POST /payments/safepay/webhook`               | Safepay (signed)       | `payment.succeeded` / `payment.failed` / `payment.refunded`; signature `x-sfpy-signature` (HMAC-SHA512). Not in Swagger                                                          |
+| `POST /auth/google` `{ idToken }`              | public                 | Google sign-in / sign-up; returns the session plus `isNewAccount`                                                                                                                |
+
+Booking responses now include `paymentStatus` (`not_required`, `pending`, `paid`, `failed`, `refunded`) and `payments[]`.

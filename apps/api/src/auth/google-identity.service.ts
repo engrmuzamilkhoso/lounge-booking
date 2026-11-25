@@ -12,6 +12,8 @@ export interface GoogleIdentity {
   email: string;
   firstName: string;
   lastName: string;
+  /** Profile picture URL, when the Google account has one and shares it. */
+  pictureUrl: string | null;
 }
 
 /**
@@ -62,6 +64,7 @@ export class GoogleIdentityService {
       email,
       firstName: payload.given_name ?? payload.name ?? email,
       lastName: payload.family_name ?? '',
+      pictureUrl: payload.picture ?? null,
     };
   }
 }

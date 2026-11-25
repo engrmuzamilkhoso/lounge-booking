@@ -6,6 +6,8 @@ export interface UserProfile {
   email: string;
   cnic: string | null;
   contact: string | null;
+  /** Profile picture (from Google Sign-In), if any. */
+  avatarUrl: string | null;
   roles: { id: number; title: string | null }[];
 }
 
@@ -16,6 +18,7 @@ export const userProfileSelect = {
   email: true,
   cnic: true,
   contact: true,
+  avatarUrl: true,
   roles: {
     where: { role: { deletedAt: null } },
     select: { role: { select: { id: true, title: true } } },
@@ -29,6 +32,7 @@ interface UserProfileRecord {
   email: string;
   cnic: string | null;
   contact: string | null;
+  avatarUrl: string | null;
   roles: { role: { id: number; title: string | null } }[];
 }
 
@@ -40,6 +44,7 @@ export function toUserProfile(user: UserProfileRecord): UserProfile {
     email: user.email,
     cnic: user.cnic,
     contact: user.contact,
+    avatarUrl: user.avatarUrl,
     roles: user.roles.map((roleUser) => roleUser.role),
   };
 }

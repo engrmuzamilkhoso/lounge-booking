@@ -90,7 +90,76 @@ Optional. Without a Client ID the Google button is simply not shown.
 
 No client secret is used: Google returns a signed ID token to the browser, and the API verifies
 its signature, issuer, audience and expiry with Google's public keys. Accounts are matched by the
-Google account id, then by Google-verified email (which links the existing account).
+Google account id, then by Google-verified email (which links the existing account). The Google
+profile picture is stored and shown in the account menu. Closing the Google popup simply leaves
+the visitor on the sign-in page.
+
+**Testing:** with the Client ID configured, open `/signin` → "Sign in with Google":
+a new Google account creates a Customer (CNIC and phone are left empty for now); an
+email that already has a password account is linked and signed in; signing out and back in with
+Google reuses the same account (no duplicates).
+
+## Safepay payments
+
+Bookings with a price are paid online through Safepay's hosted checkout; free bookings
+(bank-card lounge access, membership visits) are confirmed immediately. Leave the Safepay keys
+empty to disable online payments (paid bookings then stay "awaiting payment").
+
+### Sandbox setup
+
+1. Create a sandbox account: <https://sandbox.api.getsafepay.com/dashboard> (separate from live).
+2. **Developers → API keys:** copy the public API key and the secret key into `apps/api/.env`:
+   `SAFEPAY_API_KEY`, `SAFEPAY_SECRET_KEY`, and keep `SAFEPAY_ENVIRONMENT=sandbox`.
+3. **Developers → Endpoints → Add an endpoint:** `https://<api-host>/api/v1/payments/safepay/webhook`,
+   subscribe to `payment.succeeded`, `payment.failed` and `payment.refunded` (event version 2.0.0),
+   then copy **View shared secret** into `SAFEPAY_WEBHOOK_SECRET`. Locally, expose the API with a
+   tunnel (e.g. `ngrok http 4000`) to receive webhooks; without them payments are still confirmed
+   when the customer returns from Safepay.
+4. Restart the API. Secrets stay in `apps/api/.env` only — the website never sees them.
+
+### How a payment works
+
+1. The customer books; a booking with a price is saved as **awaiting payment**.
+2. **Pay** on the checkout page → `POST /bookings/:id/checkout`. The API takes the amount from
+   the stored booking (never from the browser), creates a Safepay payment session
+   (`POST /order/payments/v3/`, amount in paisa), gets a checkout token
+   (`POST /client/passport/v1/token`) and returns the hosted checkout URL. Clicking Pay again
+   reuses the same session, so a customer cannot be charged twice.
+3. The customer pays on Safepay and is sent back to `/checkout/:id/complete?tracker=…`.
+4. The API verifies with Safepay (`GET /reporter/api/v1/payments/:tracker`): only
+   `TRACKER_ENDED` with the expected amount and currency marks the booking **paid**. The
+   confirmation email is then sent once.
+5. Webhooks (signed with HMAC-SHA512, header `x-sfpy-signature`) trigger the same verification,
+   so payments are confirmed even if the customer closes the browser. Repeated webhooks are harmless.
+
+Cancelling on Safepay returns to the checkout page with the booking still reserved; a failed
+card marks the attempt failed and the customer can try again. Refunds made in the Safepay
+dashboard are picked up from the `payment.refunded` webhook (refunds are not issued from this app).
+
+### Testing payments (sandbox)
+
+Use Safepay's sandbox test cards (any future expiry, any CVV):
+
+| Result                                 | Card number                                    |
+| -------------------------------------- | ---------------------------------------------- |
+| Successful payment                     | `4456 5300 0000 1005` or `5200 0000 0000 1005` |
+| Successful with 3-D Secure step-up     | `4000 0000 0000 2503`                          |
+| Declined (unsuccessful authentication) | `4456 5300 0000 1013` or `5200 0000 0000 1013` |
+
+Book a Meet & Assist service (it has a price), pay with a card above and check: the result page,
+**My bookings** (status _Paid_), the payment row in the `payments` table and the confirmation
+email in the API log (or inbox). For a failure, use a declined card and then retry with a
+successful one.
+
+### Switching to production
+
+1. Create/verify the live Safepay merchant account and complete KYC.
+2. In `apps/api/.env` set `SAFEPAY_ENVIRONMENT=production` and the **live** `SAFEPAY_API_KEY`,
+   `SAFEPAY_SECRET_KEY` (from the live dashboard, <https://getsafepay.com/dashboard>).
+3. Register the production webhook endpoint (HTTPS on port 443) in the live dashboard and set
+   its shared secret as `SAFEPAY_WEBHOOK_SECRET`.
+4. Set `WEB_URL` to the public website URL (it builds the return and cancel URLs).
+5. Make one small real payment and refund it from the Safepay dashboard to confirm the setup.
 
 ## Common commands
 

@@ -48,7 +48,12 @@ export class GoogleSignInService {
       if (linkedUser.deletedAt !== null) {
         throw new AppException(ResponseCode.InvalidCredentials, HttpStatus.UNAUTHORIZED);
       }
-      return this.startSession(toUserProfile(linkedUser), false, userAgent);
+      const refreshed = await this.refreshPicture(
+        linkedUser.id,
+        linkedUser.avatarUrl,
+        identity.pictureUrl,
+      );
+      return this.startSession(refreshed ?? toUserProfile(linkedUser), false, userAgent);
     }
 
     const userWithEmail = await this.prisma.user.findFirst({
@@ -86,7 +91,11 @@ export class GoogleSignInService {
     this.logger.log({ userId: user.id }, 'Linked Google account to existing user');
     const updated = await this.prisma.user.update({
       where: { id: user.id },
-      data: { googleSub: identity.subject, emailVerifiedAt: new Date() },
+      data: {
+        googleSub: identity.subject,
+        emailVerifiedAt: new Date(),
+        avatarUrl: identity.pictureUrl,
+      },
       select: userProfileSelect,
     });
     return toUserProfile(updated);
@@ -106,6 +115,7 @@ export class GoogleSignInService {
           email: identity.email,
           password: await hashPassword(generateOpaqueToken()),
           googleSub: identity.subject,
+          avatarUrl: identity.pictureUrl,
           emailVerifiedAt: new Date(),
           roles: { create: { roleId: RoleId.Customer } },
         },
@@ -118,6 +128,23 @@ export class GoogleSignInService {
       }
       throw error;
     }
+  }
+
+  /** Keeps the stored picture in step with the Google profile; null when nothing changed. */
+  private async refreshPicture(
+    userId: number,
+    storedUrl: string | null,
+    googleUrl: string | null,
+  ): Promise<UserProfile | null> {
+    if (googleUrl === null || googleUrl === storedUrl) {
+      return null;
+    }
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { avatarUrl: googleUrl },
+      select: userProfileSelect,
+    });
+    return toUserProfile(updated);
   }
 
   private async startSession(

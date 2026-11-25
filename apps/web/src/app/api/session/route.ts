@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { displayName, getCurrentUser } from '@/lib/auth/current-user';
 
 export interface SessionSummary {
-  user: { name: string; email: string; isStaff: boolean } | null;
+  user: { name: string; email: string; avatarUrl: string | null; isStaff: boolean } | null;
 }
 
 /**
@@ -17,6 +17,6 @@ export async function GET(): Promise<NextResponse<SessionSummary>> {
   }
   const isStaff = user.roles.some((role) => role.id !== RoleId.Customer);
   return NextResponse.json({
-    user: { name: displayName(user), email: user.email, isStaff },
+    user: { name: displayName(user), email: user.email, avatarUrl: user.avatarUrl, isStaff },
   });
 }

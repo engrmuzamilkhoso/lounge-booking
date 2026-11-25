@@ -30,8 +30,8 @@ export function TextField<TValues extends FieldValues>({
   ...inputProps
 }: TextFieldProps<TValues>) {
   const id = `field-${name}`;
-  const error = form.formState.errors[name]?.message;
-  const errorMessage = typeof error === 'string' ? error : undefined;
+  // getFieldState resolves nested paths such as "attendees.0.name".
+  const errorMessage = form.getFieldState(name, form.formState).error?.message;
   const sharedProps = {
     id,
     'aria-invalid': errorMessage !== undefined,

@@ -153,6 +153,10 @@ Each is either a security fix or something Laravel did not have. Everything else
 | Admin global search                     | Model list empty — always returned nothing                           | Not built                                                                                                        | Never worked; build later if wanted                                  |
 | WhatsApp bookings                       | Endpoint existed, table missing                                      | Works with the same fields; no admin screen (none existed)                                                       | Approved                                                             |
 
+| Online payment | None (bookings were requests; payment offline) | Bookings with a price are paid with Safepay before they are confirmed; free bookings unchanged | Requested 26 Nov 2026 |
+| Paid-booking confirmation email | Sent when the booking was placed | Sent when payment is confirmed (free bookings: when placed) | Avoids "confirmed" emails for unpaid bookings |
+| Google Sign-In / Sign-Up | Not available | Google button on sign-in and sign-up; links accounts by Google-verified email; stores profile picture | Requested |
+
 Data notes:
 
 - Permission `booking_orders` (id 123) is soft-deleted in Laravel, so 122 permissions are active.

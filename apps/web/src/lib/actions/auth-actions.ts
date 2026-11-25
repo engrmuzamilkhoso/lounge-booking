@@ -98,10 +98,8 @@ export async function googleSignInAction(
   }
 
   await saveSession(session);
-  // New Google accounts have no CNIC or contact number yet; ask for them first.
-  if (session.isNewAccount) {
-    redirect('/account?welcome=google');
-  }
+  // New Google accounts have no CNIC or contact number yet. TODO(Phase 8, account page): send
+  // new accounts to /account to complete them; until that page exists they continue normally.
   redirect(safeReturnPath(returnTo, homeFor(session.user)));
 }
 
