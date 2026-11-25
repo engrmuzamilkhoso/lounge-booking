@@ -24,6 +24,12 @@ const environmentSchema = z.object({
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().default(900),
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(30),
 
+  /**
+   * OAuth 2.0 Client ID of the Google Cloud web client. ID tokens must be issued for this
+   * client. Empty disables Google Sign-In. No client secret is needed for this flow.
+   */
+  GOOGLE_CLIENT_ID: z.string().default(''),
+
   /** When SMTP_HOST is empty, emails are written to the log instead of being sent. */
   SMTP_HOST: z.string().default(''),
   SMTP_PORT: z.coerce.number().int().positive().default(587),

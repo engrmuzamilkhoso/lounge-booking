@@ -1,3 +1,69 @@
 @import 'tailwindcss';
 
-/* Brand colours, fonts and spacing are added in Phase 8 from the existing site's stylesheets. */
+/*
+ * Majestic design tokens.
+ * Brand colours come from the existing site: deep brown #2D1107, gold #90733E,
+ * bronze #7D5630 / #6B4C27 and cream #F5ECD3. The gold scale is built around those values.
+ */
+@theme {
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+
+  /* Deep brown: primary actions, dark surfaces, headings on light backgrounds. */
+  --color-espresso-950: #1c0a04;
+  --color-espresso-900: #2d1107;
+  --color-espresso-800: #3d1a0d;
+  --color-espresso-700: #5a2e17;
+
+  /* Gold / bronze: accents, highlights, decorative headings. */
+  --color-gold-50: #fbf7ee;
+  --color-gold-100: #f5ecd3;
+  --color-gold-200: #e9d9b2;
+  --color-gold-300: #d7bf8a;
+  --color-gold-400: #b49a63;
+  --color-gold-500: #90733e;
+  /* Small gold text uses 600+ to meet WCAG AA contrast on white. */
+  --color-gold-600: #7d5630;
+  --color-gold-700: #6b4c27;
+  --color-gold-800: #4f381d;
+
+  --radius-card: 1rem;
+  --shadow-card: 0 1px 2px rgb(45 17 7 / 0.04), 0 4px 16px rgb(45 17 7 / 0.06);
+  --shadow-raised: 0 2px 4px rgb(45 17 7 / 0.06), 0 12px 32px rgb(45 17 7 / 0.1);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-stone-50 text-stone-700;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-espresso-900 tracking-tight;
+  }
+
+  /* One visible, consistent keyboard focus style for every interactive element. */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-gold-500;
+  }
+
+  ::selection {
+    @apply bg-gold-200 text-espresso-900;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -47,6 +47,14 @@ export class RegisterDto {
   contact: string;
 }
 
+/** ID token returned to the website by the "Sign in with Google" button. */
+export class GoogleSignInDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(4096)
+  idToken: string;
+}
+
 export class RefreshTokenDto {
   @IsString()
   @IsNotEmpty()

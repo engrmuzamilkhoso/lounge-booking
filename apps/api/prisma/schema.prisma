@@ -44,6 +44,8 @@ model User {
   otpExpiresAt    DateTime? @map("otp_expires_at") @db.Timestamptz(6)
   otpAttempts     Int       @default(0) @map("otp_attempts")
   rememberToken   String?   @map("remember_token") @db.VarChar(255)
+  /// Google account id ("sub" claim) once the user has signed in with Google.
+  googleSub       String?   @unique @map("google_sub") @db.VarChar(255)
   createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)

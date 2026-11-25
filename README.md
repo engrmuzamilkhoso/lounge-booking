@@ -70,6 +70,28 @@ pnpm dev:web    # http://localhost:3000
 Run each in its own terminal. Check the API and database connection with
 `GET http://localhost:4000/api/v1/health`.
 
+The website needs `apps/web/.env.local` (copy `apps/web/.env.example`); `API_URL` must point at the
+API. The browser never calls the API directly: session tokens live in httpOnly cookies and the
+Next.js server calls the API on the user's behalf.
+
+## Google Sign-In
+
+Optional. Without a Client ID the Google button is simply not shown.
+
+1. Google Cloud Console → **APIs & Services → OAuth consent screen**: set up the app (External,
+   app name "Majestic Lounge", support email, authorised domain `majestic.com.pk`).
+2. **Credentials → Create credentials → OAuth client ID → Web application.**
+3. **Authorised JavaScript origins:** `http://localhost:3000` for development and the production
+   site URL (e.g. `https://majestic.com.pk`). No redirect URIs are needed — the button uses a popup.
+4. Copy the **Client ID** (ends in `.apps.googleusercontent.com`) into both:
+   - `apps/api/.env` → `GOOGLE_CLIENT_ID=…` (the API verifies tokens were issued for this client)
+   - `apps/web/.env.local` → `NEXT_PUBLIC_GOOGLE_CLIENT_ID=…` (renders the button)
+5. Restart both apps.
+
+No client secret is used: Google returns a signed ID token to the browser, and the API verifies
+its signature, issuer, audience and expiry with Google's public keys. Accounts are matched by the
+Google account id, then by Google-verified email (which links the existing account).
+
 ## Common commands
 
 | Command                                                     | What it does                                 |

@@ -8,12 +8,14 @@ import { Public } from './decorators/public.decorator.js';
 import type { AuthSession, ResetTokenResponse } from './dto/auth.dto.js';
 import {
   EmailDto,
+  GoogleSignInDto,
   LoginDto,
   RefreshTokenDto,
   RegisterDto,
   ResetPasswordDto,
   VerifyOtpDto,
 } from './dto/auth.dto.js';
+import { type GoogleAuthSession, GoogleSignInService } from './google-sign-in.service.js';
 import { PasswordResetService } from './password-reset.service.js';
 import type { TokenPair } from './token.service.js';
 import { UsersService } from '../users/users.service.js';
@@ -29,6 +31,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly passwordResetService: PasswordResetService,
     private readonly usersService: UsersService,
+    private readonly googleSignInService: GoogleSignInService,
   ) {}
 
   @Public()
@@ -50,6 +53,21 @@ export class AuthController {
     @Headers('user-agent') userAgent: string | undefined,
   ): Promise<AuthSession> {
     return this.authService.register(dto, userAgent);
+  }
+
+  /**
+   * Sign in or sign up with Google. Send the ID token from Google's button; `isNewAccount`
+   * tells the client whether the profile still needs a CNIC and contact number.
+   */
+  @Public()
+  @Throttle(CREDENTIAL_LIMIT)
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  signInWithGoogle(
+    @Body() dto: GoogleSignInDto,
+    @Headers('user-agent') userAgent: string | undefined,
+  ): Promise<GoogleAuthSession> {
+    return this.googleSignInService.signIn(dto.idToken, userAgent);
   }
 
   /** Signup form check (Laravel `check_email_exist`). */

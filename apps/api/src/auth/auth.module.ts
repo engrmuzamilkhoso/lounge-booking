@@ -4,6 +4,8 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { UsersModule } from '../users/users.module.js';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
+import { GoogleIdentityService } from './google-identity.service.js';
+import { GoogleSignInService } from './google-sign-in.service.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { PermissionsGuard } from './guards/permissions.guard.js';
 import { PasswordResetService } from './password-reset.service.js';
@@ -15,6 +17,8 @@ import { TokensModule } from './tokens.module.js';
   providers: [
     AuthService,
     PasswordResetService,
+    GoogleIdentityService,
+    GoogleSignInService,
     // Order matters: rate-limit first, then authenticate, then check permissions.
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
