@@ -117,18 +117,29 @@ Each sub-phase is a small, reviewable change set.
 
 Each is either a security fix or something Laravel did not have. Everything else keeps Laravel's rules.
 
-| Area                           | Laravel                                                 | New API                                                                        | Why                                                                 |
-| ------------------------------ | ------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| Change own password            | No current-password check                               | `currentPassword` required                                                     | Stolen session can't lock the owner out                             |
-| Change / reset password        | Other sessions stay signed in                           | All sessions signed out                                                        | Standard after a credential change                                  |
-| Profile (`/me`)                | Admin-only page (`profile_password_edit`), name + email | Every signed-in user; first/last name, email, contact (CNIC read-only)         | Needed by the mobile app                                            |
-| OTP                            | Plain text, no attempt limit, unknown email → `0007`    | Hashed, 5 attempts, unknown email answers like a known one                     | Brute-force and account-discovery protection                        |
-| Login / OTP / register / reset | Unlimited                                               | Rate-limited per IP (10/min credentials, 5/min email-sending)                  | Brute-force and email-spam protection                               |
-| Mobile logout                  | Revoked all of the user's tokens                        | `/auth/logout` ends this device; `/auth/logout-all` keeps the old behaviour    | Logging out on the phone shouldn't end the website session          |
-| Queued email                   | DB queue + cron worker                                  | Sent directly after the data is saved; failures logged, request still succeeds | No worker process to keep alive; Laravel's queue had 87 failed jobs |
-| Registration welcome email     | Sent to staff only                                      | Unchanged (staff only) — **confirm whether customers should get it**           | Template text addresses the customer                                |
+| Area                                    | Laravel                                                              | New API                                                                                   | Why                                                                 |
+| --------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Change own password                     | No current-password check                                            | `currentPassword` required                                                                | Stolen session can't lock the owner out                             |
+| Change / reset password                 | Other sessions stay signed in                                        | All sessions signed out                                                                   | Standard after a credential change                                  |
+| Profile (`/me`)                         | Admin-only page (`profile_password_edit`), name + email              | Every signed-in user; first/last name, email, contact (CNIC read-only)                    | Needed by the mobile app                                            |
+| OTP                                     | Plain text, no attempt limit, unknown email → `0007`                 | Hashed, 5 attempts, unknown email answers like a known one                                | Brute-force and account-discovery protection                        |
+| Login / OTP / register / reset          | Unlimited                                                            | Rate-limited per IP (10/min credentials, 5/min email-sending)                             | Brute-force and email-spam protection                               |
+| Mobile logout                           | Revoked all of the user's tokens                                     | `/auth/logout` ends this device; `/auth/logout-all` keeps the old behaviour               | Logging out on the phone shouldn't end the website session          |
+| Queued email                            | DB queue + cron worker                                               | Sent directly after the data is saved; failures logged, request still succeeds            | No worker process to keep alive; Laravel's queue had 87 failed jobs |
+| Registration welcome email              | Sent to staff only                                                   | Unchanged (staff only) — **confirm whether customers should get it**                      | Template text addresses the customer                                |
+| Money in responses                      | Mix of `"4000.00"` strings and integers                              | Every amount is a JSON number                                                             | One consistent type for the new app                                 |
+| Website membership application          | Insert failed (NOT NULL product/visit limit)                         | Works; saved as pending                                                                   | Fixed by approved schema change                                     |
+| Admin "create membership"               | Rules required name of exactly 50 and email of exactly 20 characters | Normal required/max-length rules                                                          | Laravel rules were unusable                                         |
+| Membership approval                     | No checks on serial number, product or visit limit                   | Serial must be unused, product must be a membership product (category 3), visit limit ≥ 1 | Prevents two memberships with one number                            |
+| Membership verification                 | Returned `0`/`1`/`2`; stored membership in the session               | `0013` not found / `0014` limit reached / remaining visits; booking re-checks             | Stateless API                                                       |
+| Product guest price                     | Column existed but admin form could not set it                       | Editable in admin product form                                                            | Premier product uses it                                             |
+| Membership-type, card, membership edits | Audited                                                              | Audited (same `audit:created/updated/deleted` entries)                                    | Same as Laravel                                                     |
 
-Data note: permission `booking_orders` (id 123) is soft-deleted in Laravel, so 122 permissions are active.
+Data notes:
+
+- Permission `booking_orders` (id 123) is soft-deleted in Laravel, so 122 permissions are active.
+- Bank cards: the booking form lists all cards, including inactive ones (`status = 0`), exactly as Laravel's `Card::all()` did. **Confirm whether inactive cards should be hidden.**
+- Memberships are corporate and not tied to a user account (one has a 3,333-visit limit), so the earlier finding "doesn't check the membership belongs to the user" is withdrawn.
 
 ## 5. Risks
 
@@ -210,7 +221,7 @@ SELECT max(id), (SELECT last_value FROM bookings_id_seq) FROM bookings;
 - [x] Phase 4 — Monorepo setup (Docker files moved to Phase 12)
 - [ ] Phase 5 — Supabase + Prisma
 - [ ] Phase 6 — Data import (you)
-- [~] Phase 7 — API modules: 7a auth, users, roles & permissions done
+- [~] Phase 7 — API modules: 7a auth, users, roles & permissions; 7b catalog & memberships done
 - [ ] Phase 8 — Frontend
 - [ ] Phase 9 — Auth hardening
 - [ ] Phase 10 — Integration

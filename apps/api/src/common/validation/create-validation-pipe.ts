@@ -49,7 +49,17 @@ function collectFieldErrors(
   }
 }
 
+/**
+ * A field counts as missing when it was not sent, sent as null (like Laravel's `required`),
+ * or failed an emptiness rule (e.g. an empty string for a required name).
+ */
 function isMissingValueError(error: ValidationError): boolean {
+  const hasConstraints = error.constraints !== undefined;
+  const valueWasNotSent = error.value === undefined || error.value === null;
+  if (hasConstraints && valueWasNotSent) {
+    return true;
+  }
+
   const constraintNames = Object.keys(error.constraints ?? {});
   if (constraintNames.some((name) => MISSING_VALUE_CONSTRAINTS.has(name))) {
     return true;

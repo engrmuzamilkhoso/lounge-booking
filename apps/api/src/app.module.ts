@@ -4,7 +4,10 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { AccessControlModule } from './access-control/access-control.module.js';
+import { AuditModule } from './audit/audit.module.js';
 import { AuthModule } from './auth/auth.module.js';
+import { CatalogModule } from './catalog/catalog.module.js';
+import { MembershipsModule } from './memberships/memberships.module.js';
 import { AllExceptionsFilter } from './common/http/all-exceptions.filter.js';
 import { ResponseEnvelopeInterceptor } from './common/http/response-envelope.interceptor.js';
 import { type Environment, validateEnvironment } from './config/environment.js';
@@ -37,9 +40,12 @@ const DEFAULT_RATE_LIMIT = { ttl: 60_000, limit: 120 };
     ThrottlerModule.forRoot([DEFAULT_RATE_LIMIT]),
     PrismaModule,
     MailModule,
+    AuditModule,
     AccessControlModule,
     AuthModule,
     UsersModule,
+    CatalogModule,
+    MembershipsModule,
     HealthModule,
   ],
   providers: [
