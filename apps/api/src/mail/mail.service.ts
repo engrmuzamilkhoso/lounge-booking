@@ -3,9 +3,18 @@ import { ConfigService } from '@nestjs/config';
 import nodemailer, { type Transporter } from 'nodemailer';
 import type { Environment } from '../config/environment.js';
 
+export interface EmailAttachment {
+  filename: string;
+  content: Buffer;
+  contentType: string;
+  /** Set to show the attachment inside the HTML as `<img src="cid:…">`. */
+  contentId?: string;
+}
+
 export interface EmailContent {
   subject: string;
   html: string;
+  attachments?: EmailAttachment[];
 }
 
 /**
@@ -53,7 +62,12 @@ export class MailService {
 
     if (this.transporter === null) {
       this.logger.log(
-        { to: uniqueRecipients, subject: content.subject, html: content.html },
+        {
+          to: uniqueRecipients,
+          subject: content.subject,
+          html: content.html,
+          attachments: content.attachments?.map((attachment) => attachment.filename),
+        },
         'Email not sent (SMTP_HOST is empty)',
       );
       return;
@@ -65,6 +79,12 @@ export class MailService {
         to: uniqueRecipients,
         subject: content.subject,
         html: content.html,
+        attachments: content.attachments?.map((attachment) => ({
+          filename: attachment.filename,
+          content: attachment.content,
+          contentType: attachment.contentType,
+          cid: attachment.contentId,
+        })),
       });
     } catch (error) {
       this.logger.error(

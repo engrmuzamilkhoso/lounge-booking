@@ -29,6 +29,8 @@ export const ResponseCode = {
   AlreadyPaid: '0021',
   PaymentGatewayError: '0022',
   PaymentsUnavailable: '0023',
+  PassAlreadyUsed: '0024',
+  PassNotValid: '0025',
   ServerError: '9999',
 } as const;
 export type ResponseCode = (typeof ResponseCode)[keyof typeof ResponseCode];
@@ -58,6 +60,8 @@ export const ResponseMessage: Record<ResponseCode, string> = {
   '0021': 'Already-Paid',
   '0022': 'Payment-Gateway-Error',
   '0023': 'Payments-Unavailable',
+  '0024': 'Pass-Already-Used',
+  '0025': 'Pass-Not-Valid',
   '9999': 'Server-Error',
 };
 

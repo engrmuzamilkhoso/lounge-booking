@@ -1,6 +1,12 @@
-import type { AttendeeType, BookingPaymentStatus, PaymentStatus } from '@booking/shared-types';
-import { formatDateOnly } from '../common/date-only.js';
+import type {
+  AttendeeType,
+  BookingPaymentStatus,
+  PassStatus,
+  PaymentStatus,
+} from '@booking/shared-types';
+import { formatDateOnly, todayInPakistan } from '../common/date-only.js';
 import type { Prisma } from '../generated/prisma/client.js';
+import { isSettled, passStatusFor } from './passes/pass-status.js';
 
 export interface AttendeeResponse {
   id: number;
@@ -31,6 +37,15 @@ export interface PaymentSummary {
   createdAt: string;
 }
 
+/** The customer's lounge pass, shown as a QR code and scanned by staff at the counter. */
+export interface BookingPass {
+  /** Secret token encoded in the QR code. */
+  token: string;
+  status: PassStatus;
+  /** When staff checked the pass in; a pass can be used once. */
+  checkedInAt: string | null;
+}
+
 export interface BookingResponse {
   id: number;
   /** Booking reference shown to customers, e.g. "ML0000201". */
@@ -56,6 +71,8 @@ export interface BookingResponse {
   paymentStatus: BookingPaymentStatus;
   /** Online payment attempts, newest first. */
   payments: PaymentSummary[];
+  /** Null until the booking is paid (or when it has nothing to pay). */
+  pass: BookingPass | null;
   bankCard: { id: number; name: string } | null;
   membership: { id: number; serialNo: string } | null;
   createdAt: string | null;
@@ -89,7 +106,10 @@ export const bookingSelect = {
   guestQty: true,
   totalAmount: true,
   paymentStatus: true,
+  passToken: true,
+  checkedInAt: true,
   createdAt: true,
+  deletedAt: true,
   service: { select: { id: true, name: true } },
   product: { select: { id: true, name: true } },
   category: { select: { id: true, name: true } },
@@ -185,9 +205,21 @@ export function toBookingResponse(booking: BookingRecord): BookingResponse {
       paidAt: payment.paidAt === null ? null : payment.paidAt.toISOString(),
       createdAt: payment.createdAt.toISOString(),
     })),
+    pass: toBookingPass(booking),
     bankCard: booking.bankCard,
     membership: booking.membership,
     createdAt: booking.createdAt === null ? null : booking.createdAt.toISOString(),
     attendees: booking.attendees.map(toAttendeeResponse),
+  };
+}
+
+function toBookingPass(booking: BookingRecord): BookingPass | null {
+  if (!isSettled(booking.paymentStatus)) {
+    return null;
+  }
+  return {
+    token: booking.passToken,
+    status: passStatusFor(booking, todayInPakistan()),
+    checkedInAt: booking.checkedInAt === null ? null : booking.checkedInAt.toISOString(),
   };
 }

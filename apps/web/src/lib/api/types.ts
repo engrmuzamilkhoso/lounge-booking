@@ -1,4 +1,9 @@
-import type { AttendeeType, BookingPaymentStatus, PaymentStatus } from '@booking/shared-types';
+import type {
+  AttendeeType,
+  BookingPaymentStatus,
+  PassStatus,
+  PaymentStatus,
+} from '@booking/shared-types';
 
 /** Shapes returned by the NestJS API (see apps/api, Swagger at /api/docs). */
 
@@ -79,6 +84,13 @@ export interface PaymentSummary {
   createdAt: string;
 }
 
+/** The customer's lounge pass (QR code). Null until the booking is paid. */
+export interface BookingPass {
+  token: string;
+  status: PassStatus;
+  checkedInAt: string | null;
+}
+
 export interface Booking {
   id: number;
   code: string;
@@ -98,6 +110,7 @@ export interface Booking {
   totalAmount: number | null;
   paymentStatus: BookingPaymentStatus;
   payments: PaymentSummary[];
+  pass: BookingPass | null;
   bankCard: { id: number; name: string } | null;
   membership: { id: number; serialNo: string } | null;
   createdAt: string | null;
@@ -109,4 +122,13 @@ export interface PaymentConfirmation {
   bookingCode: string;
   bookingPaymentStatus: BookingPaymentStatus;
   paymentStatus: PaymentStatus;
+}
+
+/** Staff view of a scanned pass (GET /admin/booking-passes/:token). */
+export interface PassVerification {
+  status: PassStatus;
+  departsToday: boolean;
+  checkedInAt: string | null;
+  checkedInBy: { id: number; name: string } | null;
+  booking: Booking;
 }

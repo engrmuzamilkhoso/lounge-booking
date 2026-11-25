@@ -24,6 +24,10 @@ export class ApiError extends Error {
     return this.httpStatus === 401;
   }
 
+  get isForbidden(): boolean {
+    return this.httpStatus === 403;
+  }
+
   get isNotFound(): boolean {
     return this.httpStatus === 404;
   }
@@ -44,6 +48,8 @@ const FRIENDLY_MESSAGES: Partial<Record<ResponseCode, string>> = {
   [ResponseCode.PriceMismatch]: 'The price has changed. Please review the new total.',
   [ResponseCode.Unauthorized]: 'Please sign in to continue.',
   [ResponseCode.Forbidden]: 'You do not have permission to do that.',
+  [ResponseCode.PassAlreadyUsed]: 'This pass has already been used.',
+  [ResponseCode.PassNotValid]: 'This pass cannot be used.',
   [ResponseCode.NoRecord]: 'We could not find what you were looking for.',
   [ResponseCode.ServerError]: 'Something went wrong on our side. Please try again.',
 };

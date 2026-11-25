@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { BookingDetails } from '@/components/bookings/booking-details';
+import { LoungePass } from '@/components/bookings/lounge-pass';
 import { PayNowButton } from '@/components/payments/pay-now-button';
 import { ButtonLink } from '@/components/ui/button';
 import { Container } from '@/components/ui/container';
@@ -123,8 +124,13 @@ function PaidResult({ booking }: { booking: Booking }) {
       icon={<CircleCheck aria-hidden className="size-8" />}
       tone="success"
       title="Payment successful"
-      description={`Your booking ${booking.code} is confirmed. A confirmation email is on its way.`}
+      description={`Your booking ${booking.code} is confirmed. Show the QR code below at the Majestic counter.`}
     >
+      {booking.pass !== null && (
+        <div className="mx-auto mb-8 max-w-2xl text-left">
+          <LoungePass booking={booking} pass={booking.pass} />
+        </div>
+      )}
       {payment !== undefined && (
         <dl className="mx-auto grid w-full max-w-lg gap-3 rounded-xl border border-stone-200 bg-stone-50 p-5 text-left text-sm sm:grid-cols-2">
           <ReceiptRow label="Amount paid" value={formatRupees(payment.amount)} />

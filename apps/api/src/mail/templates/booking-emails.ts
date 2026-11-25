@@ -7,6 +7,8 @@ export interface BookingConfirmationDetails {
   adults: number;
   children: number;
   infants: number;
+  /** Content id of the attached QR code image; omitted when the booking has no pass yet. */
+  passQrContentId?: string;
 }
 
 /**
@@ -34,10 +36,22 @@ export function renderBookingConfirmationEmail(details: BookingConfirmationDetai
       </thead>
       <tbody>${quantityRows}</tbody>
     </table>
+    ${details.passQrContentId === undefined ? '' : renderPassSection(details.passQrContentId)}
     <p>If you have any questions, feel free to contact us at contact@majestic.com.pk</p>`;
 
   return {
     subject: 'Majestic Booking detail',
     html: renderEmailLayout(body, 'Thank you for choosing Majestic Lounge.'),
   };
+}
+
+function renderPassSection(qrContentId: string): string {
+  return `
+    <h3 style="margin:24px 0 8px 0;">Your lounge pass</h3>
+    <p>Show this QR code at the Majestic counter. Staff will scan it to confirm your booking.
+    It can be used once.</p>
+    <p style="text-align:center;margin:16px 0;">
+      <img src="cid:${escapeHtml(qrContentId)}" width="220" height="220" alt="Lounge pass QR code"
+        style="display:inline-block;border:1px solid #e7e5e4;padding:8px;background:#ffffff;" />
+    </p>`;
 }

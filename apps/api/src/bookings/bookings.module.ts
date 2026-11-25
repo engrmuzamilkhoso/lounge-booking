@@ -6,18 +6,26 @@ import { BookingConfirmationMailer } from './booking-confirmation.mailer.js';
 import { BookingCreationService } from './booking-creation.service.js';
 import { BookingsController } from './bookings.controller.js';
 import { BookingsService } from './bookings.service.js';
+import { AdminBookingPassesController } from './passes/admin-booking-passes.controller.js';
+import { BookingPassesService } from './passes/booking-passes.service.js';
 import { WhatsappBookingsController } from './whatsapp/whatsapp-bookings.controller.js';
 import { WhatsappBookingsService } from './whatsapp/whatsapp-bookings.service.js';
 
 @Module({
   imports: [MembershipsModule],
-  controllers: [BookingsController, AdminBookingsController, WhatsappBookingsController],
+  controllers: [
+    BookingsController,
+    AdminBookingsController,
+    AdminBookingPassesController,
+    WhatsappBookingsController,
+  ],
   providers: [
     BookingCreationService,
     BookingsService,
     BookingAttendeesService,
     WhatsappBookingsService,
     BookingConfirmationMailer,
+    BookingPassesService,
   ],
   exports: [BookingConfirmationMailer],
 })

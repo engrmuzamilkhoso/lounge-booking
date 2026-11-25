@@ -2,6 +2,7 @@ import { Receipt } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BookingDetails } from '@/components/bookings/booking-details';
+import { LoungePass } from '@/components/bookings/lounge-pass';
 import { OrderSummary } from '@/components/bookings/order-summary';
 import { needsPayment, PaymentStatusBadge } from '@/components/bookings/payment-status-badge';
 import { PayNowButton } from '@/components/payments/pay-now-button';
@@ -63,6 +64,7 @@ export default async function MyBookingPage({
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px] lg:items-start">
         <div className="flex flex-col gap-6">
+          {booking.pass !== null && <LoungePass booking={booking} pass={booking.pass} />}
           <BookingDetails booking={booking} />
           {booking.payments.length > 0 && (
             <section className="rounded-card border border-stone-200 bg-white p-6 shadow-card">

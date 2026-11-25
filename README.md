@@ -161,6 +161,20 @@ successful one.
 4. Set `WEB_URL` to the public website URL (it builds the return and cancel URLs).
 5. Make one small real payment and refund it from the Safepay dashboard to confirm the setup.
 
+## Lounge passes (QR check-in)
+
+After a booking is paid (or when it has nothing to pay), the customer gets a QR code: on the
+payment-success page, on the booking page (with a "Save QR code" button) and in the confirmation
+email. At the counter, staff open **/staff/check-in** (also in the account menu as "Scan lounge
+passes"), scan the code, and see **Authorised**, **Already used** or **Not authorised** with the
+reason. "Check in" marks the pass as used, so the same QR code (or a screenshot of it) cannot be
+used twice. Staff need the `booking_show` permission to verify and `booking_edit` to check in.
+
+- The camera scanner needs HTTPS (or localhost) and a browser that reads QR codes (Chrome/Edge).
+  On an iPhone, scan with the Camera app: the QR code opens the verification page directly.
+- `NEXT_PUBLIC_SITE_URL` (web) and `WEB_URL` (API) must both be the public site address, since
+  the QR code links there.
+
 ## Common commands
 
 | Command                                                     | What it does                                 |
