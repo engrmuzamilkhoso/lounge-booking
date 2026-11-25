@@ -18,6 +18,8 @@ export default tseslint.config(
       // NestJS modules are classes decorated with @Module and intentionally have no members.
       '@typescript-eslint/no-extraneous-class': ['error', { allowWithDecorator: true }],
       '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
+      // Allows `const { removed, ...rest } = value` to drop a property.
+      '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
       // NestJS declares many option types as classes but expects plain object literals.
       '@typescript-eslint/no-unsafe-class-instance-assignment': 'off',
     },

@@ -6,6 +6,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { AccessControlModule } from './access-control/access-control.module.js';
 import { AuditModule } from './audit/audit.module.js';
 import { AuthModule } from './auth/auth.module.js';
+import { BookingsModule } from './bookings/bookings.module.js';
 import { CatalogModule } from './catalog/catalog.module.js';
 import { MembershipsModule } from './memberships/memberships.module.js';
 import { AllExceptionsFilter } from './common/http/all-exceptions.filter.js';
@@ -46,6 +47,7 @@ const DEFAULT_RATE_LIMIT = { ttl: 60_000, limit: 120 };
     UsersModule,
     CatalogModule,
     MembershipsModule,
+    BookingsModule,
     HealthModule,
   ],
   providers: [
