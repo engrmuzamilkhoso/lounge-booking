@@ -12,7 +12,11 @@ import { MembershipsModule } from './memberships/memberships.module.js';
 import { AllExceptionsFilter } from './common/http/all-exceptions.filter.js';
 import { ResponseEnvelopeInterceptor } from './common/http/response-envelope.interceptor.js';
 import { type Environment, validateEnvironment } from './config/environment.js';
+import { DashboardModule } from './dashboard/dashboard.module.js';
+import { FaqModule } from './faq/faq.module.js';
 import { HealthModule } from './health/health.module.js';
+import { InquiriesModule } from './inquiries/inquiries.module.js';
+import { LookupsModule } from './lookups/lookups.module.js';
 import { MailModule } from './mail/mail.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -48,6 +52,10 @@ const DEFAULT_RATE_LIMIT = { ttl: 60_000, limit: 120 };
     CatalogModule,
     MembershipsModule,
     BookingsModule,
+    LookupsModule,
+    FaqModule,
+    InquiriesModule,
+    DashboardModule,
     HealthModule,
   ],
   providers: [

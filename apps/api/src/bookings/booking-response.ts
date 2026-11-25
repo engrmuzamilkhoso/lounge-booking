@@ -88,9 +88,14 @@ export const bookingSelect = {
 type BookingRecord = Prisma.BookingGetPayload<{ select: typeof bookingSelect }>;
 type AttendeeRecord = Prisma.BookingAttendeeGetPayload<{ select: typeof attendeeSelect }>;
 
-/** `time` columns come back as a Date on 1970-01-01 UTC. */
+/** `time` columns come back as a Date on 1970-01-01 UTC. → "22:50" */
 export function formatTimeOfDay(value: Date): string {
   return value.toISOString().slice(11, 16);
+}
+
+/** Same as formatTimeOfDay, including seconds. → "22:50:00" */
+export function formatTimeOfDayWithSeconds(value: Date): string {
+  return value.toISOString().slice(11, 19);
 }
 
 /** "22:50" or "22:50:00" → Date on 1970-01-01 UTC, for a `time` column. */
