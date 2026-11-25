@@ -237,7 +237,7 @@ SELECT max(id), (SELECT last_value FROM bookings_id_seq) FROM bookings;
 - [x] Phase 2 — Documentation
 - [x] Phase 3 — Schema design (approved 25 Nov 2026)
 - [x] Phase 4 — Monorepo setup (Docker files moved to Phase 12)
-- [ ] Phase 5 — Supabase + Prisma
+- [x] Phase 5 — Supabase + Prisma (schema migrated 25 Nov 2026; 22 tables, RLS on, anon locked out)
 - [ ] Phase 6 — Data import (you)
 - [x] Phase 7 — API modules (auth, users, roles, catalog, memberships, bookings, lookups, FAQ, inquiries, dashboard, audit log, WhatsApp bookings)
 - [ ] Phase 8 — Frontend
