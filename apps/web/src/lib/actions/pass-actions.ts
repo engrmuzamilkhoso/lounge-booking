@@ -1,9 +1,9 @@
 'use server';
 
-import { passVerificationPath } from '@booking/shared-types';
 import { redirect } from 'next/navigation';
 import { ApiError } from '../api/api-error';
 import { apiRequest } from '../api/server-api';
+import { adminPassPath } from '../passes/scan-input';
 import type { PassVerification } from '../api/types';
 import { type ActionResult, actionFailure, apiFailure } from './action-result';
 
@@ -54,5 +54,5 @@ export async function findPassByCodeAction(bookingCode: string): Promise<ActionR
       code: `Booking ${code} has not been paid yet, so it has no pass.`,
     });
   }
-  redirect(passVerificationPath(verification.booking.pass.token));
+  redirect(adminPassPath(verification.booking.pass.token));
 }

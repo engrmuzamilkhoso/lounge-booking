@@ -29,7 +29,7 @@ export default async function AdminDashboardPage() {
         description="Bookings, sales and customers at a glance."
         actions={
           permissions.has('booking_show') ? (
-            <ButtonLink href="/staff/check-in" icon={<ScanLine aria-hidden className="size-4" />}>
+            <ButtonLink href="/admin/check-in" icon={<ScanLine aria-hidden className="size-4" />}>
               Scan a pass
             </ButtonLink>
           ) : undefined

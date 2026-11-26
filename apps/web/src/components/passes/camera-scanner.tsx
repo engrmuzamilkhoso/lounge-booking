@@ -1,16 +1,14 @@
 'use client';
 
-import { passVerificationPath } from '@booking/shared-types';
 import { Camera, CameraOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { adminPassPath, readScanInput } from '@/lib/passes/scan-input';
 
 /** How often a video frame is checked for a QR code. */
 const SCAN_INTERVAL_MS = 300;
-const PASS_PATH_PATTERN = /\/staff\/pass\/([0-9a-f]{64})\/?$/;
-const PASS_TOKEN_PATTERN = /^[0-9a-f]{64}$/;
 
 /**
  * Minimal typing for the browser's BarcodeDetector API (Chrome/Edge on Android, Windows and
@@ -30,22 +28,6 @@ function findBarcodeDetector(): BarcodeDetectorConstructor | null {
   return typeof candidate === 'function' ? (candidate as BarcodeDetectorConstructor) : null;
 }
 
-/** The pass token in a scanned value: the pass URL from our QR codes, or a bare token. */
-function passTokenFrom(scannedValue: string): string | null {
-  const value = scannedValue.trim();
-  if (PASS_TOKEN_PATTERN.test(value)) {
-    return value;
-  }
-  let url: URL;
-  try {
-    url = new URL(value);
-  } catch {
-    return null;
-  }
-  const match = PASS_PATH_PATTERN.exec(url.pathname);
-  return match?.[1] ?? null;
-}
-
 type ScannerState =
   | { kind: 'idle' }
   | { kind: 'unsupported' }
@@ -58,7 +40,7 @@ type ScannerState =
  * cannot read QR codes (Safari, Firefox), staff use the phone's camera app instead: the QR code
  * is a link to the same verification page.
  */
-export function PassScanner() {
+export function CameraScanner() {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -124,13 +106,13 @@ export function PassScanner() {
           if (first === undefined) {
             return;
           }
-          const passToken = passTokenFrom(first.rawValue);
-          if (passToken === null) {
+          const scan = readScanInput(first.rawValue);
+          if (scan.kind !== 'pass') {
             setState({ kind: 'scanning', notice: 'That QR code is not a Majestic lounge pass.' });
             return;
           }
           stopCamera();
-          router.push(passVerificationPath(passToken));
+          router.push(adminPassPath(scan.token));
         })
         .catch(() => {
           // A frame that cannot be read is skipped; the next one is tried.
@@ -176,7 +158,7 @@ export function PassScanner() {
       {state.kind === 'unsupported' && (
         <Alert tone="info" title="Use your phone's camera app">
           This browser cannot read QR codes. Open the camera app and point it at the pass: the
-          verification page opens automatically. You can also enter the booking reference below.
+          verification page opens automatically. You can also use the scan box above.
         </Alert>
       )}
 

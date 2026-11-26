@@ -160,7 +160,7 @@ so staff are warned about passes for another day. Check-in errors: `0024 Pass-Al
 (HTTP 409), `0025 Pass-Not-Valid` (HTTP 422). Two staff scanning the same pass at once cannot
 both check it in (conditional update).
 
-Website pages: `/staff/check-in` (camera scanner where the browser supports it, plus booking
-reference lookup) and `/staff/pass/[token]` (verdict, passenger ID list, check-in button).
+Website pages: `/admin/check-in` (USB scanner box, camera scanner where the browser supports it, plus booking
+reference lookup) and `/admin/passes/[token]` (verdict, passenger ID list, check-in button). The QR link `/staff/pass/[token]` sends staff there.
 Phones whose browser cannot read QR codes (iPhone Safari) use the camera app: the QR code is a
 link to the verification page.

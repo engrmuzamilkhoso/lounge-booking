@@ -177,15 +177,26 @@ A payment is never lost when the customer pays but does not come back to the web
 
 After a booking is paid (or when it has nothing to pay), the customer gets a QR code: on the
 payment-success page, on the booking page (with a "Save QR code" button) and in the confirmation
-email. At the counter, staff open **/staff/check-in** (also in the account menu as "Scan lounge
-passes"), scan the code, and see **Authorised**, **Already used** or **Not authorised** with the
-reason. "Check in" marks the pass as used, so the same QR code (or a screenshot of it) cannot be
-used twice. Staff need the `booking_show` permission to verify and `booking_edit` to check in.
+email.
 
-- The camera scanner needs HTTPS (or localhost) and a browser that reads QR codes (Chrome/Edge).
-  On an iPhone, scan with the Camera app: the QR code opens the verification page directly.
-- `NEXT_PUBLIC_SITE_URL` (web) and `WEB_URL` (API) must both be the public site address, since
-  the QR code links there.
+At the counter, staff open **Admin panel → Scan passes** (`/admin/check-in`) and do one of:
+
+- **USB or Bluetooth QR scanner:** just scan. The scanner types the code and presses Enter; the
+  page picks it up even if the box is not selected. Use any 2D (QR) scanner in keyboard mode
+  with Enter as the suffix (the factory default on most models). The keyboard layout should
+  match Windows' layout (usually US English), though the pass still opens if ":" or "/" come
+  out wrong.
+- **Booking reference:** type it (e.g. ML0000201) in the same box and press Enter.
+- **Camera:** "Scan a pass" (Chrome or Edge, on HTTPS or localhost). On an iPhone, the Camera
+  app opens the pass link directly.
+
+The pass page shows **Authorised**, **Already used** or **Not authorised** with the reason, the
+passengers to check against their ID, and "Check in". A pass can be checked in once, so the same
+QR code (or a screenshot of it) is refused afterwards. The scan box stays at the top, ready for
+the next customer. Staff need `booking_show` to verify and `booking_edit` to check in.
+
+`NEXT_PUBLIC_SITE_URL` (web) and `WEB_URL` (API) must both be the public site address, since the
+QR code links there (`/staff/pass/<code>`, which sends staff on to the admin panel).
 
 ## Admin panel
 
@@ -197,7 +208,7 @@ sidebar and every button follow the user's role permissions (the same keys as La
 |---|---|
 | Dashboard | Booking count and value, users, latest bookings, "Scan a pass" |
 | Bookings | Search/filter, view passengers, payments and pass, edit flight details, remove a passenger, delete |
-| Scan passes | QR check-in at the counter (`/staff/check-in`) |
+| Scan passes | QR check-in at the counter (`/admin/check-in`): USB scanner, booking reference or camera |
 | Memberships | Applications and members, approve (issues the next serial number), edit, delete |
 | Services, Products, Product categories, Bank cards, Membership types | Full create / edit / delete |
 | FAQ questions and categories, Nationalities, Statuses, Booking sources | Full create / edit / delete |

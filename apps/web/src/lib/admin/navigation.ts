@@ -46,7 +46,7 @@ export const adminNavigation: AdminNavGroup[] = [
         permission: 'booking_access',
       },
       {
-        href: '/staff/check-in',
+        href: '/admin/check-in',
         label: 'Scan passes',
         icon: 'scan',
         permission: 'booking_show',

@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  CalendarCheck,
-  ChevronDown,
-  LayoutDashboard,
-  LogOut,
-  ScanLine,
-  UserRound,
-} from 'lucide-react';
+import { CalendarCheck, ChevronDown, LayoutDashboard, LogOut, UserRound } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -132,15 +125,7 @@ function UserDropdown({ user }: { user: NonNullable<SessionSummary['user']> }) {
             <p className="truncate text-xs text-stone-500">{user.email}</p>
           </div>
           {user.isStaff && (
-            <>
-              <MenuLink href="/admin" icon={LayoutDashboard} label="Admin panel" onSelect={close} />
-              <MenuLink
-                href="/staff/check-in"
-                icon={ScanLine}
-                label="Scan lounge passes"
-                onSelect={close}
-              />
-            </>
+            <MenuLink href="/admin" icon={LayoutDashboard} label="Admin panel" onSelect={close} />
           )}
           <MenuLink href="/my-bookings" icon={CalendarCheck} label="My bookings" onSelect={close} />
           <MenuLink href="/account" icon={UserRound} label="Account settings" onSelect={close} />

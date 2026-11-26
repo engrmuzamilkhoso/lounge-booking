@@ -1,4 +1,4 @@
-import { AttendeeType, PassStatus, passVerificationPath } from '@booking/shared-types';
+import { AttendeeType, PassStatus } from '@booking/shared-types';
 import { Pencil, QrCode } from 'lucide-react';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
@@ -14,6 +14,7 @@ import { getRecordOrNotFound, idParam } from '@/lib/admin/queries';
 import type { Attendee, Booking, PaymentSummary } from '@/lib/api/types';
 import { displayName } from '@/lib/auth/current-user';
 import { formatDate, formatDateTime, formatRupees, formatTime } from '@/lib/format';
+import { adminPassPath } from '@/lib/passes/scan-input';
 import { RemoveAttendeeButton } from './remove-attendee-button';
 
 export const metadata: Metadata = { title: 'Booking' };
@@ -66,7 +67,7 @@ export default async function AdminBookingPage({
           <>
             {booking.pass !== null && (
               <ButtonLink
-                href={passVerificationPath(booking.pass.token)}
+                href={adminPassPath(booking.pass.token)}
                 variant="secondary"
                 icon={<QrCode aria-hidden className="size-4" />}
               >
