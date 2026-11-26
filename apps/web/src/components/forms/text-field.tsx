@@ -1,7 +1,12 @@
 'use client';
 
 import type { ComponentProps } from 'react';
-import { type FieldValues, type Path, type UseFormReturn } from 'react-hook-form';
+import {
+  type FieldValues,
+  type Path,
+  type RegisterOptions,
+  type UseFormReturn,
+} from 'react-hook-form';
 import { describedBy, FormField } from '@/components/ui/form-field';
 import { Input, Textarea } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
@@ -16,6 +21,8 @@ interface TextFieldProps<TValues extends FieldValues> extends Omit<
   hint?: string;
   /** Renders a multi-line text area instead of a single-line input. */
   multiline?: boolean;
+  /** e.g. `{ valueAsNumber: true }` for numeric inputs. */
+  registerOptions?: RegisterOptions<TValues, Path<TValues>>;
 }
 
 /** A labelled input wired to React Hook Form, with its validation message. */
@@ -27,6 +34,7 @@ export function TextField<TValues extends FieldValues>({
   required,
   type,
   multiline = false,
+  registerOptions,
   ...inputProps
 }: TextFieldProps<TValues>) {
   const id = `field-${name}`;
@@ -37,7 +45,7 @@ export function TextField<TValues extends FieldValues>({
     'aria-invalid': errorMessage !== undefined,
     'aria-describedby': describedBy(id, hint, errorMessage),
     'aria-required': required,
-    ...form.register(name),
+    ...form.register(name, registerOptions),
   };
 
   let control;

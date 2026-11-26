@@ -187,6 +187,26 @@ used twice. Staff need the `booking_show` permission to verify and `booking_edit
 - `NEXT_PUBLIC_SITE_URL` (web) and `WEB_URL` (API) must both be the public site address, since
   the QR code links there.
 
+## Admin panel
+
+Staff sign in on the website and open **/admin** (also "Admin panel" in the account menu). The
+sidebar and every button follow the user's role permissions (the same keys as Laravel, e.g.
+`booking_edit`); the API checks each request again.
+
+| Section | What staff can do |
+|---|---|
+| Dashboard | Booking count and value, users, latest bookings, "Scan a pass" |
+| Bookings | Search/filter, view passengers, payments and pass, edit flight details, remove a passenger, delete |
+| Scan passes | QR check-in at the counter (`/staff/check-in`) |
+| Memberships | Applications and members, approve (issues the next serial number), edit, delete |
+| Services, Products, Product categories, Bank cards, Membership types | Full create / edit / delete |
+| FAQ questions and categories, Nationalities, Statuses, Booking sources | Full create / edit / delete |
+| Users, Roles, Permissions | Accounts and their roles; which permissions each role has |
+| Audit log | Every change with who, when and the values |
+
+Deleting is a soft delete. Deleted names and emails stay reserved, so they cannot be reused for a
+new record (same as the previous system).
+
 ## Common commands
 
 | Command                                                     | What it does                                 |
